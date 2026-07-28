@@ -1,0 +1,29 @@
+build/
+*.exe
+*.o
+
+# Sunucudan donen imzali XML'ler calisma ciktisi; klasor dursun, icerik girmesin
+signed/*.xml
+
+# Ucuncu parti kaynaklar (sqlite3, mbedTLS, libxml2) repoya dahil degil -
+# nasil indirilecegi README'de anlatiliyor. Ama third_party/ altindaki
+# su iki dosya BIZIM kodumuz, onlar olmadan proje derlenmez:
+#   mbedtls_config_invoice.h  - sadelestirilmis mbedTLS yapilandirmasi
+#   mbedtls_platform_mingw.c  - MinGW'de eksik olan SecureZeroMemory'nin yerine
+# Bu yuzden klasoru "third_party/*" olarak disliyoruz (sonunda / ile degil),
+# cunku git, dislanmis bir KLASORUN icindeki dosyalar icin istisna kabul etmez.
+third_party/*
+!third_party/mbedtls_config_invoice.h
+!third_party/mbedtls_platform_mingw.c
+
+# Ders materyali PDF'leri repoya dahil edilmiyor
+*.pdf
+
+# Python calisirken uretilen bytecode onbellegi
+__pycache__/
+*.pyc
+
+# Otomatik test paketi (Python) - yerel gelistirme/dogrulama araci.
+# Proje C ile teslim ediliyor; test betikleri repoya/teslime dahil degil,
+# ama diskte kaliyor - "python tests/test_client.py" ile calistirilabilir.
+tests/
