@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uploadSystem xmlns:ns1="http://uri.etsi.org/01903/v1.4.1#"
+	xmlns:ns2="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:ns3="http://uri.etsi.org/01903/v1.3.2#"
+	xmlns="http://earsiv.efatura.gov.tr"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	
+	<customer type="SAHIS">
+		<name>HAKAN USLU</name>
+		<ssnNumber>12345678902</ssnNumber>
+	</customer>
+	
+	<invoiceData seri="ABC" number = "100000001">
+		<invoiceType>SU</invoiceType>
+		<quantity>20.958</quantity>
+		<unitPrice>3.09</unitPrice>
+		<totalAmount>64.76</totalAmount>
+		<discount>-0.24</discount>
+		<amountToPay>65.00</amountToPay>
+	</invoiceData>
+
+</uploadSystem>

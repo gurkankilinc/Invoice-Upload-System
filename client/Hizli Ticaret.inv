@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uploadSystem xmlns:ns1="http://uri.etsi.org/01903/v1.4.1#"
+	xmlns:ns2="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:ns3="http://uri.etsi.org/01903/v1.3.2#"
+	xmlns="http://earsiv.efatura.gov.tr"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	
+	<customer type="FİRMA">
+		<name>HIZLI TİCARET</name>
+		<ssnNumber>1234567890</ssnNumber>
+	</customer>
+	
+	<invoiceData seri="ABC" number = "100000001">
+		<invoiceType>TELEKOM</invoiceType>
+		<quantity>38370.908</quantity>
+		<unitPrice>32.17</unitPrice>
+		<totalAmount>1,234,392.11</totalAmount>
+		<discount>0.11</discount>
+		<amountToPay>1,234,392.00</amountToPay>
+	</invoiceData>
+
+</uploadSystem>
