@@ -5,16 +5,57 @@ build/
 # Sunucudan donen imzali XML'ler calisma ciktisi; klasor dursun, icerik girmesin
 signed/*.xml
 
-# Ucuncu parti kaynaklar (sqlite3, mbedTLS, libxml2) repoya dahil degil -
-# nasil indirilecegi README'de anlatiliyor. Ama third_party/ altindaki
-# su iki dosya BIZIM kodumuz, onlar olmadan proje derlenmez:
-#   mbedtls_config_invoice.h  - sadelestirilmis mbedTLS yapilandirmasi
-#   mbedtls_platform_mingw.c  - MinGW'de eksik olan SecureZeroMemory'nin yerine
-# Bu yuzden klasoru "third_party/*" olarak disliyoruz (sonunda / ile degil),
-# cunku git, dislanmis bir KLASORUN icindeki dosyalar icin istisna kabul etmez.
+# Ucuncu parti kaynaklar (sqlite3, mbedTLS, libxml2). Bunlarin BUILD ICIN
+# GEREKEN kismi (amalgamation/header/derlenmis .a) repoya dahil, geri kalani
+# (testler, dokumanlar, tam kaynak agaci) degil - repo klonlanip "sh build.sh"
+# calistirilinca hicbir ek indirme gerekmesin diye.
+#
+# Git kurali: bir klasor "third_party/*" gibi bir joker ile dislanirsa, o
+# klasorun ICINDEKI dosyalar icin "!" istisnasi tek basina yetmez - her ust
+# klasorun kendisinin de ayrica "!klasor/" ile istisna edilmesi gerekir.
+# Bu yuzden asagida her seviye icin once "!klasor/" (klasoru ac), sonra
+# "klasor/*" (icini tekrar kapat) sirasi izleniyor.
 third_party/*
 !third_party/mbedtls_config_invoice.h
 !third_party/mbedtls_platform_mingw.c
+
+# sqlite3: tek dosyalik "amalgamation", Phase 1'in zorunlu tuttugu sqlite
+# erisimi icin. Kucuk bir kutuphane degil (~9 MB), ama tek dosya oldugu icin
+# boyle geliyor - resmi sqlite.org dagitimi da bu sekilde.
+!third_party/sqlite3/
+third_party/sqlite3/*
+!third_party/sqlite3/sqlite3.c
+!third_party/sqlite3/sqlite3.h
+
+# mbedTLS: sadece derlemede KULLANILAN 5 kaynak dosya + header'lar.
+# library/*.h dosyalarinin TAMAMI aciliyor (~935 KB, kucuk) - bunlar kutuphanenin
+# kendi ic basliklari (include/ altinda degil, common.h gibi), 5 .c dosyasi
+# birbiri uzerinden zincirleme onlarca tanesini istiyor; tek tek eklemek
+# yerine hepsini acmak daha az kirilgan.
+# Kutuphanenin tamami (testler, ornek programlar, docs => ~47 MB) disarida.
+!third_party/mbedtls/
+third_party/mbedtls/*
+!third_party/mbedtls/include/
+!third_party/mbedtls/library/
+third_party/mbedtls/library/*
+!third_party/mbedtls/library/*.h
+!third_party/mbedtls/library/sha256.c
+!third_party/mbedtls/library/aes.c
+!third_party/mbedtls/library/platform.c
+!third_party/mbedtls/library/platform_util.c
+!third_party/mbedtls/library/constant_time.c
+
+# libxml2: header'lar + Makefile.mingw ile bir kere derlenmis statik
+# kutuphane (libxml2.a). libxml2'nin kendi kaynak agaci (~36 MB, configure
+# betikleri, testler) disarida - derlemek icin gerekmiyor, sadece .a lazim.
+!third_party/libxml2/
+third_party/libxml2/*
+!third_party/libxml2/include/
+!third_party/libxml2/win32/
+third_party/libxml2/win32/*
+!third_party/libxml2/win32/bin.mingw/
+third_party/libxml2/win32/bin.mingw/*
+!third_party/libxml2/win32/bin.mingw/libxml2.a
 
 # Ders materyali PDF'leri repoya dahil edilmiyor
 *.pdf

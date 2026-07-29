@@ -29,13 +29,13 @@ static sqlite3_int64 g_currentAuditId = -1;
 
 /* Asagida tanimli; konsol kapatma handler'i da bunu cagirdigi icin
    burada onceden bildiriyoruz. */
-static void write_logout_time(void);
+static void writeLogoutTime(void);
 
 /* "users" ve "audit" tablolarini yoksa olusturur. "IF NOT EXISTS" sayesinde
    tablo zaten varsa hata vermeden gecer, tekrar cagirmak guvenlidir.
    Sema, referans upload_system.db dosyasindaki gercek semayla birebir ayni
    tutuluyor (Id/OID INTEGER, tablo adlari kucuk harf). */
-static void create_schema(void)
+static void createSchema(void)
 {
     const char *sql =
         "CREATE TABLE IF NOT EXISTS users ("
@@ -65,10 +65,10 @@ static void create_schema(void)
 /* Kullanici "2 - Logout" secmeden pencereyi kapatirsa (X tusu, Ctrl+C,
    oturum kapatma) LogoutTime bos kalirdi. Windows bu durumlarda asagidaki
    handler'i cagiriyor; biz de kapanmadan once cikis zamanini kaydediyoruz. */
-static BOOL WINAPI console_close_handler(DWORD ctrlType)
+static BOOL WINAPI consoleCloseHandler(DWORD ctrlType)
 {
     (void)ctrlType; /* tum kapanma turlerinde ayni sey yapiliyor */
-    write_logout_time();
+    writeLogoutTime();
     return FALSE;   /* FALSE = varsayilan davranis devam etsin, program kapansin */
 }
 
@@ -76,7 +76,7 @@ static BOOL WINAPI console_close_handler(DWORD ctrlType)
    Kalici veri (kullanicilar) ayrica saglanan upload_system.db dosyasindan
    geliyor; burada sadece tablo yoksa olusturuluyor, sahte kullanici
    eklenmiyor. */
-static void ensure_db_open(void)
+static void ensureDbOpen(void)
 {
     if (NULL != g_db) {
         return;
@@ -88,10 +88,10 @@ static void ensure_db_open(void)
         exit(1);
     }
 
-    create_schema();
+    createSchema();
 
     /* Pencere kapatilirsa da LogoutTime yazilabilsin diye kaydediyoruz */
-    SetConsoleCtrlHandler(console_close_handler, TRUE);
+    SetConsoleCtrlHandler(consoleCloseHandler, TRUE);
 }
 
 /* Klavyeden bir satir okur (Enter'a kadar), sonundaki '\n' karakterini siler.
@@ -99,7 +99,7 @@ static void ensure_db_open(void)
    EOF'u ayirt etmek onemli: yonlendirilmis girdiyle calisirken (otomatik
    test) bunu bilmezsek bos kullanici adiyla sonsuz "Login failed" dongusune
    gireriz. */
-static int read_line(char *buffer, size_t size)
+static int readLine(char *buffer, size_t size)
 {
     size_t length;
 
@@ -120,7 +120,7 @@ static int read_line(char *buffer, size_t size)
    audit.LoginTime / LogoutTime sutunlari TEXT; veritabanindaki mevcut
    kayitlar da bu formatta oldugu icin (ornek: "2021-08-26 08:05")
    saniye kullanmiyoruz. */
-static void get_current_timestamp(char *buffer, size_t size)
+static void getCurrentTimestamp(char *buffer, size_t size)
 {
     time_t now = time(NULL);
     struct tm *parts = localtime(&now);
@@ -137,7 +137,7 @@ static void get_current_timestamp(char *buffer, size_t size)
    kullanmak tampon disina tasar. strcpy'nin ise hic sinir kontrolu yok.
    Ikisinin arasindaki bu farki her cagri yerinde tekrar yazmak yerine
    burada tek yerde hallediyoruz. */
-static void copy_text(char *destination, size_t size, const char *source)
+static void copyText(char *destination, size_t size, const char *source)
 {
     if (NULL == destination || 0 == size) {
         return;
@@ -154,7 +154,7 @@ static void copy_text(char *destination, size_t size, const char *source)
 
 /* "users" tablosunda Id'si eslesen bir satir var mi, sifre dogru mu diye bakar.
    Bulursa NameSurname degerini nameSurnameOut'a yazar ve 1 doner. */
-static int check_credentials(const char *id, const char *password,
+static int checkCredentials(const char *id, const char *password,
                              char *nameSurnameOut, size_t nameSize)
 {
     const char *sql = "SELECT NameSurname, Password FROM users WHERE Id = ?;";
@@ -175,7 +175,7 @@ static int check_credentials(const char *id, const char *password,
 
         if (NULL != dbPassword &&
             0 == strcmp((const char *)dbPassword, password)) {
-            copy_text(nameSurnameOut, nameSize,
+            copyText(nameSurnameOut, nameSize,
                       (const char *)sqlite3_column_text(stmt, 0));
             found = 1;
         }
@@ -187,13 +187,13 @@ static int check_credentials(const char *id, const char *password,
 
 /* Basarili giriste audit tablosuna yeni bir satir ekler, OID'sini
    g_currentAuditId'ye kaydeder. */
-static void insert_login_audit(const char *userId)
+static void insertLoginAudit(const char *userId)
 {
     const char *sql = "INSERT INTO audit (UserId, LoginTime) VALUES (?, ?);";
     sqlite3_stmt *stmt;
     char timestamp[32];
 
-    get_current_timestamp(timestamp, sizeof(timestamp));
+    getCurrentTimestamp(timestamp, sizeof(timestamp));
 
     if (SQLITE_OK == sqlite3_prepare_v2(g_db, sql, -1, &stmt, NULL)) {
         sqlite3_bind_text(stmt, 1, userId, -1, SQLITE_TRANSIENT);
@@ -205,32 +205,32 @@ static void insert_login_audit(const char *userId)
     }
 }
 
-int user_login(AppUser *outUser)
+int userLogin(AppUser *outUser)
 {
     char id[64];
     char password[64];
     char nameSurname[128];
 
-    ensure_db_open();
+    ensureDbOpen();
 
     for (;;) {
         printf("Enter User Id: ");
-        if (0 == read_line(id, sizeof(id))) {
+        if (0 == readLine(id, sizeof(id))) {
             return 0; /* girdi bitti */
         }
 
         printf("Enter Password: ");
-        console_read_password(password, sizeof(password));
+        consoleReadPassword(password, sizeof(password));
 
-        if (0 != check_credentials(id, password, nameSurname, sizeof(nameSurname))) {
+        if (0 != checkCredentials(id, password, nameSurname, sizeof(nameSurname))) {
             printf("Login Succeeded\n");
             Sleep(LOGIN_MESSAGE_MS);
 
-            copy_text(outUser->id, sizeof(outUser->id), id);
-            copy_text(outUser->nameSurname, sizeof(outUser->nameSurname), nameSurname);
-            copy_text(outUser->password, sizeof(outUser->password), password);
+            copyText(outUser->id, sizeof(outUser->id), id);
+            copyText(outUser->nameSurname, sizeof(outUser->nameSurname), nameSurname);
+            copyText(outUser->password, sizeof(outUser->password), password);
 
-            insert_login_audit(outUser->id);
+            insertLoginAudit(outUser->id);
             return 1;
         }
 
@@ -242,7 +242,7 @@ int user_login(AppUser *outUser)
 
 /* Acik olan audit kaydinin LogoutTime sutununu su anki zamanla doldurur.
    Hem normal logout hem de pencere kapatma durumunda cagriliyor. */
-static void write_logout_time(void)
+static void writeLogoutTime(void)
 {
     const char *sql = "UPDATE audit SET LogoutTime = ? WHERE OID = ?;";
     sqlite3_stmt *stmt;
@@ -252,7 +252,7 @@ static void write_logout_time(void)
         return; /* acik bir oturum yok */
     }
 
-    get_current_timestamp(timestamp, sizeof(timestamp));
+    getCurrentTimestamp(timestamp, sizeof(timestamp));
 
     if (SQLITE_OK == sqlite3_prepare_v2(g_db, sql, -1, &stmt, NULL)) {
         sqlite3_bind_text(stmt, 1, timestamp, -1, SQLITE_TRANSIENT);
@@ -264,10 +264,10 @@ static void write_logout_time(void)
     g_currentAuditId = -1;
 }
 
-void user_logout(const AppUser *user)
+void userLogout(const AppUser *user)
 {
     (void)user; /* su an kullanilmiyor ama ileride loglama icin lazim olabilir */
 
-    write_logout_time();
+    writeLogoutTime();
     Sleep(2000);
 }

@@ -27,7 +27,7 @@
    Exe kendi klasorunde durdugu icin oraya gecmek dogru sonucu veriyor:
    nereden calistirilirsa calistirilsin (VS Code terminali, cift tiklama,
    baska bir klasor) uygulama kendi verisini buluyor. */
-static void set_working_directory_to_exe(void)
+static void setWorkingDirectoryToExe(void)
 {
     char path[MAX_PATH];
     char *lastSeparator;
@@ -48,7 +48,7 @@ static void set_working_directory_to_exe(void)
 }
 
 /* Spesifikasyonun istedigi "Select Operation" menusu. */
-static void print_select_operation_menu(const AppUser *user)
+static void printSelectOperationMenu(const AppUser *user)
 {
     printf("User : %s\n", user->nameSurname);
     printf("Select Operation\n");
@@ -60,7 +60,7 @@ static void print_select_operation_menu(const AppUser *user)
    sunucuya hic baglanilmaz, secilen faturanin icerigi 10 saniye ekranda
    kalir. Varsayilan davranis Faz 2'dir.
    1 = Faz 1 modu, 0 = normal (Faz 2). */
-static int parse_arguments(int argc, char **argv)
+static int parseArguments(int argc, char **argv)
 {
     int i;
 
@@ -81,16 +81,16 @@ int main(int argc, char **argv)
     AppUser currentUser;
     int phase1Mode;
 
-    set_working_directory_to_exe();
-    console_setup();
+    setWorkingDirectoryToExe();
+    consoleSetup();
 
-    phase1Mode = parse_arguments(argc, argv);
-    invoice_set_phase1_mode(phase1Mode);
+    phase1Mode = parseArguments(argc, argv);
+    invoiceSetPhase1Mode(phase1Mode);
 
     for (;;) {
         /* Basarili girise kadar burada bekler (appUser.c).
            0 donerse girdi bitmistir, uygulamayi kapatiyoruz. */
-        if (0 == user_login(&currentUser)) {
+        if (0 == userLogin(&currentUser)) {
             return 0;
         }
 
@@ -99,36 +99,36 @@ int main(int argc, char **argv)
         if (0 == phase1Mode) {
             /* Spesifikasyon Phase 2: ip ve port login'den SONRA soruluyor.
                Baglanti kurulamazsa bilgiler tekrar sorulur. */
-            while (0 == network_connect()) {
+            while (0 == networkConnect()) {
                 printf("Tekrar deneniyor...\n\n");
             }
 
-            network_send_hello(currentUser.nameSurname, currentUser.password);
+            networkSendHello(currentUser.nameSurname, currentUser.password);
         }
 
         for (;;) {
             int key;
 
-            print_select_operation_menu(&currentUser);
+            printSelectOperationMenu(&currentUser);
 
             /* Menude Enter'a gerek yok, tek tusla secim yapiliyor */
-            key = console_read_key();
+            key = consoleReadKey();
 
             /* Girdi bitti (yonlendirilmis stdin): duzgunce kapan,
                yoksa otomatik test sonsuz donguye girer. */
             if (CONSOLE_KEY_EOF == key) {
-                network_disconnect();
-                user_logout(&currentUser);
+                networkDisconnect();
+                userLogout(&currentUser);
                 return 0;
             }
 
             if (KEY_INVOICE_LIST == key) {
-                invoice_list_menu();
+                invoiceListMenu();
             }
             else if (KEY_LOGOUT == key) {
                 printf("Logging out...\n");
-                network_disconnect();
-                user_logout(&currentUser);
+                networkDisconnect();
+                userLogout(&currentUser);
                 printf("--------------------------------\n");
                 break; /* tekrar "Enter User Id" ekranina don (adim 3) */
             }

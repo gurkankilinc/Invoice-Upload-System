@@ -29,7 +29,7 @@
 /* Faz 1'de fatura iceriginin ekranda kalma suresi (isterlerde 10 saniye) */
 #define INVOICE_DISPLAY_MS 10000
 
-/* Faz 1 modu acik mi? invoice_set_phase1_mode() ile ayarlaniyor.
+/* Faz 1 modu acik mi? invoiceSetPhase1Mode() ile ayarlaniyor.
    "static": modun degeri sadece bu dosyadan gorulebiliyor, disaridan
    dogrudan degistirilemiyor. */
 static int g_phase1Mode = 0;
@@ -40,8 +40,8 @@ static int g_phase1Mode = 0;
    ("Hizli Ticaret"). Ayrimi bu alandan yapiyoruz. */
 #define CUSTOMER_TYPE_PERSON "SAHIS"
 
-/* Asagida tanimli; is_person_invoice de dosya okumak icin kullaniyor. */
-static int read_invoice_file(const char *fileName, int quiet,
+/* Asagida tanimli; isPersonInvoice de dosya okumak icin kullaniyor. */
+static int readInvoiceFile(const char *fileName, int quiet,
                              char **contentOut, size_t *lengthOut);
 
 /* Fatura bir sahsa mi ait? <customer type="..."> degerine bakar.
@@ -52,7 +52,7 @@ static int read_invoice_file(const char *fileName, int quiet,
    ayristiriyoruz: xmlReadFile Windows'ta yol adini UTF-8 kabul ediyor, oysa
    readdir() dosya adlarini sistemin ANSI kod sayfasinda veriyor. Turkce
    karakterli bir dosya adi ("Hizli Ticaret.inv") bu yuzden acilamazdi. */
-static int is_person_invoice(const char *fileName)
+static int isPersonInvoice(const char *fileName)
 {
     xmlDocPtr doc;
     xmlNodePtr root;
@@ -61,7 +61,7 @@ static int is_person_invoice(const char *fileName)
     size_t contentLength;
     int isPerson = 1;
 
-    if (0 == read_invoice_file(fileName, 1, &content, &contentLength)) {
+    if (0 == readInvoiceFile(fileName, 1, &content, &contentLength)) {
         return 1;
     }
 
@@ -95,7 +95,7 @@ static int is_person_invoice(const char *fileName)
 
 /* Calisma dizinindeki ".inv" ile biten dosyalarin adlarini fileNames dizisine
    yazar, kac tane bulundugunu dondurur. */
-static int scan_invoice_files(char fileNames[][MAX_NAME_LEN])
+static int scanInvoiceFiles(char fileNames[][MAX_NAME_LEN])
 {
     DIR *dir = opendir(".");
     struct dirent *entry;
@@ -125,7 +125,7 @@ static int scan_invoice_files(char fileNames[][MAX_NAME_LEN])
     return count;
 }
 
-static void print_invoice_menu(char fileNames[][MAX_NAME_LEN], int count)
+static void printInvoiceMenu(char fileNames[][MAX_NAME_LEN], int count)
 {
     int i;
 
@@ -145,7 +145,7 @@ static void print_invoice_menu(char fileNames[][MAX_NAME_LEN], int count)
            Firma faturalarinda bu yapilmiyor: ornekteki ucuncu satir
            "Hizli Ticaret" oldugu gibi duruyor. */
         lastSpace = strrchr(displayName, ' ');
-        if (NULL != lastSpace && 0 != is_person_invoice(fileNames[i])) {
+        if (NULL != lastSpace && 0 != isPersonInvoice(fileNames[i])) {
             size_t j;
             for (j = (size_t)(lastSpace - displayName) + 1; j < nameLength; j++) {
                 displayName[j] = (char)toupper((unsigned char)displayName[j]);
@@ -156,7 +156,7 @@ static void print_invoice_menu(char fileNames[][MAX_NAME_LEN], int count)
            ayarli (bkz. common/appConsole.c). Yazmadan once cevirmezsek
            Turkce karakterli bir dosya adi bozuk gorunur. */
         printf("%d - %s\n", i + 1,
-               console_to_utf8(displayName, utf8Name, sizeof(utf8Name)));
+               consoleToUtf8(displayName, utf8Name, sizeof(utf8Name)));
     }
 
     printf("Press ESC to return main menu\n");
@@ -172,7 +172,7 @@ static void print_invoice_menu(char fileNames[][MAX_NAME_LEN], int count)
    Neden sabit boyutlu dizi degil: fatura dosyalari XML ve boyutlari degisken.
    Once fseek/ftell ile gercek boyutu ogrenip tam o kadar yer ayiriyoruz,
    boylece buyuk bir fatura sessizce kesilmiyor. */
-static int read_invoice_file(const char *fileName, int quiet,
+static int readInvoiceFile(const char *fileName, int quiet,
                              char **contentOut, size_t *lengthOut)
 {
     /* "rb": dosyayi bayt bayt, oldugu gibi okuyoruz. Metin modunda Windows
@@ -229,12 +229,12 @@ static int read_invoice_file(const char *fileName, int quiet,
    Faz 2 bu davranisin yerine dosyayi sunucuya gondermeyi getirdi; ancak
    isterler listesi Faz 1 maddesini de ayri bir kalem olarak sayiyor, bu
    yuzden davranis --phase1 secenegiyle hala gosterilebiliyor. */
-static void show_invoice_content(const char *fileName)
+static void showInvoiceContent(const char *fileName)
 {
     char *content;
     size_t contentLength;
 
-    if (0 == read_invoice_file(fileName, 0, &content, &contentLength)) {
+    if (0 == readInvoiceFile(fileName, 0, &content, &contentLength)) {
         Sleep(2000);
         return;
     }
@@ -246,29 +246,29 @@ static void show_invoice_content(const char *fileName)
 }
 
 /* Faz 2 davranisi: secilen fatura ekrana basilmiyor, sunucuya gonderiliyor. */
-static void upload_invoice(const char *fileName)
+static void uploadInvoice(const char *fileName)
 {
     char *content;
     size_t contentLength;
 
-    if (0 == read_invoice_file(fileName, 0, &content, &contentLength)) {
+    if (0 == readInvoiceFile(fileName, 0, &content, &contentLength)) {
         Sleep(2000);
         return;
     }
 
     /* "... file has been sent, waiting for registration" bilgilendirmesi
-       network_send_invoice icinde, gonderim ile yanit beklemesi arasinda
+       networkSendInvoice icinde, gonderim ile yanit beklemesi arasinda
        yazdiriliyor - mesajin anlami zaten orayi tarif ediyor. */
-    network_send_invoice(fileName, content, contentLength);
+    networkSendInvoice(fileName, content, contentLength);
     free(content);
 
     /* Yaniti okuyabilmesi icin kullaniciya sure taniyoruz, sonra menu
        yeniden geliyor (spesifikasyon: "Invoices menu is shown again"). */
     printf("\nDevam etmek icin bir tusa basin...\n");
-    console_read_key();
+    consoleReadKey();
 }
 
-void invoice_list_menu(void)
+void invoiceListMenu(void)
 {
     char fileNames[MAX_INVOICES][MAX_NAME_LEN];
     int count;
@@ -276,10 +276,10 @@ void invoice_list_menu(void)
     for (;;) {
         int key;
 
-        count = scan_invoice_files(fileNames);
-        print_invoice_menu(fileNames, count);
+        count = scanInvoiceFiles(fileNames);
+        printInvoiceMenu(fileNames, count);
 
-        key = console_read_key();
+        key = consoleReadKey();
 
         if (KEY_ESC == key || CONSOLE_KEY_EOF == key) {
             return; /* Select Operation menusune geri don */
@@ -290,9 +290,9 @@ void invoice_list_menu(void)
 
             if (selection <= count) {
                 if (0 != g_phase1Mode) {
-                    show_invoice_content(fileNames[selection - 1]);
+                    showInvoiceContent(fileNames[selection - 1]);
                 } else {
-                    upload_invoice(fileNames[selection - 1]);
+                    uploadInvoice(fileNames[selection - 1]);
                 }
                 continue;
             }
@@ -303,7 +303,7 @@ void invoice_list_menu(void)
     }
 }
 
-void invoice_set_phase1_mode(int enabled)
+void invoiceSetPhase1Mode(int enabled)
 {
     g_phase1Mode = enabled;
 }

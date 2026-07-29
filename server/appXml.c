@@ -17,7 +17,7 @@
 /* Belge icinde daha once eklenmis bir invoiceStatus varsa siler.
    Ayni faturayi ikinci kez imzalarsak iki tane invoiceStatus olusmasin diye.
    "static": sadece bu dosyanin ic yardimcisi. */
-static void remove_existing_status(xmlNodePtr root)
+static void removeExistingStatus(xmlNodePtr root)
 {
     xmlNodePtr child = root->children;
 
@@ -36,7 +36,7 @@ static void remove_existing_status(xmlNodePtr root)
     }
 }
 
-int xml_sign_invoice(const char *invoiceXml, size_t invoiceLength,
+int xmlSignInvoice(const char *invoiceXml, size_t invoiceLength,
                      const char *timestamp, const char *signatureHex,
                      char **outXml, size_t *outLength)
 {
@@ -69,7 +69,7 @@ int xml_sign_invoice(const char *invoiceXml, size_t invoiceLength,
         return -1;
     }
 
-    remove_existing_status(root);
+    removeExistingStatus(root);
 
     /* root->ns vererek node'u kokun namespace'ine bagliyoruz. Boylece
        ciktida invoiceStatus'a ayrica bir xmlns yazilmiyor, fatura
@@ -112,12 +112,12 @@ int xml_sign_invoice(const char *invoiceXml, size_t invoiceLength,
     return 0;
 }
 
-void xml_free_buffer(char *buffer)
+void xmlFreeBuffer(char *buffer)
 {
     free(buffer);
 }
 
-int xml_is_well_formed(const char *xml, size_t length)
+int xmlIsWellFormed(const char *xml, size_t length)
 {
     xmlDocPtr doc;
 
@@ -135,7 +135,7 @@ int xml_is_well_formed(const char *xml, size_t length)
     return 1;
 }
 
-void xml_shutdown(void)
+void xmlShutdown(void)
 {
     xmlCleanupParser();
 }

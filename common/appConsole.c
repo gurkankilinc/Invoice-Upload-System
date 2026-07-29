@@ -10,14 +10,14 @@
 /* Program acilirken buldugumuz kod sayfasi; cikarken geri yukluyoruz. */
 static UINT g_originalCodePage = 0;
 
-static void restore_code_page(void)
+static void restoreCodePage(void)
 {
     if (0 != g_originalCodePage) {
         SetConsoleOutputCP(g_originalCodePage);
     }
 }
 
-void console_setup(void)
+void consoleSetup(void)
 {
     /* Tamponlamayi kapat: her printf aninda ekrana gitsin.
        Bu satir olmadan, stdout bir boruysa cikti 4 KB'lik parcalar halinde
@@ -27,11 +27,11 @@ void console_setup(void)
     g_originalCodePage = GetConsoleOutputCP();
 
     if (SetConsoleOutputCP(CP_UTF8)) {
-        atexit(restore_code_page);
+        atexit(restoreCodePage);
     }
 }
 
-const char *console_to_utf8(const char *ansiText, char *out, size_t outSize)
+const char *consoleToUtf8(const char *ansiText, char *out, size_t outSize)
 {
     wchar_t wide[512];
     int wideLength;
@@ -63,18 +63,18 @@ const char *console_to_utf8(const char *ansiText, char *out, size_t outSize)
     return out;
 }
 
-int console_is_interactive(void)
+int consoleIsInteractive(void)
 {
     /* _isatty: verilen dosya tanimlayicisi bir terminale mi bagli?
        stdin bir boruya ya da dosyaya yonlendirilmisse 0 doner. */
     return _isatty(_fileno(stdin)) ? 1 : 0;
 }
 
-int console_read_key(void)
+int consoleReadKey(void)
 {
     int ch;
 
-    if (0 != console_is_interactive()) {
+    if (0 != consoleIsInteractive()) {
         return _getch(); /* Enter'a gerek yok, tek tus */
     }
 
@@ -91,7 +91,7 @@ int console_read_key(void)
     return ch;
 }
 
-void console_read_password(char *buffer, size_t size)
+void consoleReadPassword(char *buffer, size_t size)
 {
     size_t i = 0;
 
@@ -99,7 +99,7 @@ void console_read_password(char *buffer, size_t size)
         return;
     }
 
-    if (0 == console_is_interactive()) {
+    if (0 == consoleIsInteractive()) {
         /* Yonlendirilmis girdi: maskeleme yapmadan satiri oku */
         if (NULL == fgets(buffer, (int)size, stdin)) {
             buffer[0] = '\0';

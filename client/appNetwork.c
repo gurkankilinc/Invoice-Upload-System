@@ -51,11 +51,11 @@ static char g_userPassword[64] = "";
    yani soketi kapattiktan sonra sorarsak sebebi kaybediyoruz. */
 static int g_lastConnectError = 0;
 
-/* Asagida tanimli; send_and_receive baglanti koptugunda bunu cagiriyor. */
-static int try_reconnect(void);
+/* Asagida tanimli; sendAndReceive baglanti koptugunda bunu cagiriyor. */
+static int tryReconnect(void);
 
 /* Klavyeden bir satir okur, sonundaki satir sonu karakterlerini temizler. */
-static void read_line(char *buffer, size_t size)
+static void readLine(char *buffer, size_t size)
 {
     size_t length;
 
@@ -75,9 +75,9 @@ static void read_line(char *buffer, size_t size)
    sentFileName NULL degilse, gonderim ile yanit beklemesi ARASINDA
    "... file has been sent, waiting for registration" bilgilendirmesi
    yazdirilir (isterler listesi bunu istemci ekraninda istiyor).
-   Basarili olursa 1 doner ve *responseOut'a proto_free ile birakilacak
+   Basarili olursa 1 doner ve *responseOut'a protoFree ile birakilacak
    tampon yazar. Yanit gelmezse (30 sn zaman asimi dahil) 0 doner. */
-static int send_and_receive(const char *message, size_t messageLength,
+static int sendAndReceive(const char *message, size_t messageLength,
                             const char *sentFileName,
                             char **responseOut, size_t *responseLengthOut)
 {
@@ -89,25 +89,25 @@ static int send_and_receive(const char *message, size_t messageLength,
     if (INVALID_SOCKET == g_serverSocket) {
         printf("Upload operation failed\n");
         printf("  Sebep: sunucu baglantisi yok\n");
-        try_reconnect();
+        tryReconnect();
         return 0;
     }
 
-    result = proto_send(g_serverSocket, message, messageLength);
+    result = protoSend(g_serverSocket, message, messageLength);
     if (PROTO_OK != result) {
         printf("Upload operation failed\n");
         printf("  Sebep: mesaj gonderilemedi (baglanti kopmus)\n");
-        try_reconnect();
+        tryReconnect();
         return 0;
     }
 
     if (NULL != sentFileName) {
         char utf8Name[512];
         printf("\n%s file has been sent, waiting for registration\n",
-               console_to_utf8(sentFileName, utf8Name, sizeof(utf8Name)));
+               consoleToUtf8(sentFileName, utf8Name, sizeof(utf8Name)));
     }
 
-    result = proto_recv(g_serverSocket, responseOut, responseLengthOut);
+    result = protoRecv(g_serverSocket, responseOut, responseLengthOut);
     if (PROTO_OK != result) {
         /* Spesifikasyonun istedigi mesaj; sebebi ayrica yaziyoruz ki
            kullanici "sunucu yavas mi, kapali mi" ayrimini gorebilsin. */
@@ -124,7 +124,7 @@ static int send_and_receive(const char *message, size_t messageLength,
             printf("  Sebep: ag hatasi (%d)\n", WSAGetLastError());
         }
 
-        try_reconnect();
+        tryReconnect();
         return 0;
     }
 
@@ -134,7 +134,7 @@ static int send_and_receive(const char *message, size_t messageLength,
 /* Sunucudan gelen imzali XML'i signed/ klasorune kaydeder.
    "Hakan Uslu.inv" -> "../signed/Hakan Uslu.signed.xml"
    Uzanti bilerek ".inv" degil: yoksa bu dosyalar da fatura listesine duserdi. */
-static void save_signed_file(const char *fileName,
+static void saveSignedFile(const char *fileName,
                              const char *signedContent, size_t contentLength)
 {
     char outPath[512];
@@ -170,7 +170,7 @@ static void save_signed_file(const char *fileName,
     printf("\nImzali dosya kaydedildi: %s\n", outPath);
 }
 
-int network_send_hello(const char *nameSurname, const char *password)
+int networkSendHello(const char *nameSurname, const char *password)
 {
     char message[512];
     char *response = NULL;
@@ -178,25 +178,25 @@ int network_send_hello(const char *nameSurname, const char *password)
     int received;
 
     /* Bilgileri sakliyoruz: baglanti koparsa yeniden baglandiktan sonra
-       Hello'yu tekrar gondermemiz gerekiyor (bkz. resend_hello_quietly). */
+       Hello'yu tekrar gondermemiz gerekiyor (bkz. resendHelloQuietly). */
     snprintf(g_userName, sizeof(g_userName), "%s", nameSurname);
     snprintf(g_userPassword, sizeof(g_userPassword), "%s", password);
 
     snprintf(message, sizeof(message), "<Hello>%s %s</Hello>",
              nameSurname, password);
 
-    received = send_and_receive(message, strlen(message), NULL,
+    received = sendAndReceive(message, strlen(message), NULL,
                                 &response, &responseLength);
     if (0 != received) {
         /* Spesifikasyon: "InvoiceClient display message from the Server" */
         printf("%s\n", response);
     }
 
-    proto_free(response);
+    protoFree(response);
     return received;
 }
 
-int network_send_invoice(const char *fileName,
+int networkSendInvoice(const char *fileName,
                          const char *fileContent, size_t contentLength)
 {
     char header[320];
@@ -226,7 +226,7 @@ int network_send_invoice(const char *fileName,
     memcpy(message + headerLength + contentLength, closeTag, strlen(closeTag));
     message[messageLength] = '\0';
 
-    received = send_and_receive(message, messageLength, fileName,
+    received = sendAndReceive(message, messageLength, fileName,
                                 &response, &responseLength);
     free(message);
 
@@ -248,16 +248,16 @@ int network_send_invoice(const char *fileName,
                "dosya kaydedilmedi.\n");
     } else {
         xmlFreeDoc(doc);
-        save_signed_file(fileName, response, responseLength);
+        saveSignedFile(fileName, response, responseLength);
     }
 
-    proto_free(response);
+    protoFree(response);
     return 1;
 }
 
 /* Saklanan adrese TCP baglantisi acar. Sessizdir; mesaji cagiran yazar.
    1 = baglandi, 0 = baglanamadi (sebep g_lastConnectError'da). */
-static int open_connection(void)
+static int openConnection(void)
 {
     struct sockaddr_in serverAddr;
     DWORD timeout = RECEIVE_TIMEOUT_MS;
@@ -297,7 +297,7 @@ static int open_connection(void)
    Yeni baglanti sunucu icin yeni bir oturum; Hello gonderilmezse sunucu
    ekraninda kullanici adi gorunmez. Yanit okunur ama ekrana basilmaz,
    kullaniciyi ikinci bir "I am ready" ile mesgul etmeyelim. */
-static void resend_hello_quietly(void)
+static void resendHelloQuietly(void)
 {
     char message[512];
     char *response = NULL;
@@ -310,16 +310,16 @@ static void resend_hello_quietly(void)
     snprintf(message, sizeof(message), "<Hello>%s %s</Hello>",
              g_userName, g_userPassword);
 
-    if (PROTO_OK == proto_send(g_serverSocket, message, strlen(message))) {
-        proto_recv(g_serverSocket, &response, &responseLength);
-        proto_free(response);
+    if (PROTO_OK == protoSend(g_serverSocket, message, strlen(message))) {
+        protoRecv(g_serverSocket, &response, &responseLength);
+        protoFree(response);
     }
 }
 
 /* Baglantiyi kapatip saklanan adrese yeniden baglanmayi dener.
    Her adimi ekrana yazar ki kullanici ne olup bittigini gorsun.
    1 = yeniden baglanildi, 0 = baglanilamadi. */
-static int try_reconnect(void)
+static int tryReconnect(void)
 {
     DWORD startTick;
     DWORD elapsed;
@@ -350,9 +350,9 @@ static int try_reconnect(void)
                (unsigned long)(elapsed / 1000), attempt,
                g_serverIp, g_serverPort);
 
-        if (0 != open_connection()) {
+        if (0 != openConnection()) {
             printf("basarili\n");
-            resend_hello_quietly();
+            resendHelloQuietly();
             printf("  Sunucuya yeniden baglanildi, islemi tekrar deneyebilirsiniz.\n\n");
             return 1;
         }
@@ -379,7 +379,7 @@ static int try_reconnect(void)
     return 0;
 }
 
-int network_connect(void)
+int networkConnect(void)
 {
     WSADATA wsaData;
     char portText[16];
@@ -393,13 +393,13 @@ int network_connect(void)
        Degerleri sakliyoruz ki baglanti koptugunda tekrar sormadan
        yeniden baglanabilelim. */
     printf("Enter Server IP: ");
-    read_line(g_serverIp, sizeof(g_serverIp));
+    readLine(g_serverIp, sizeof(g_serverIp));
 
     printf("Enter Server Port: ");
-    read_line(portText, sizeof(portText));
+    readLine(portText, sizeof(portText));
     g_serverPort = atoi(portText);
 
-    if (0 == open_connection()) {
+    if (0 == openConnection()) {
         printf("Sunucuya baglanilamadi (hata %d)\n", g_lastConnectError);
         return 0;
     }
@@ -408,7 +408,7 @@ int network_connect(void)
     return 1;
 }
 
-void network_disconnect(void)
+void networkDisconnect(void)
 {
     if (INVALID_SOCKET != g_serverSocket) {
         closesocket(g_serverSocket);

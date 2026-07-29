@@ -38,7 +38,7 @@ static int g_responseDelaySeconds = 0;
 
 /* Sunucunun dinledigi IP'yi bulup ekrana yazar (spesifikasyon acilista
    "ip, port" bilgisinin gosterilmesini istiyor). */
-static void print_listen_address(int port)
+static void printListenAddress(int port)
 {
     char hostName[256];
     struct hostent *host;
@@ -79,7 +79,7 @@ static void print_listen_address(int port)
    Spesifikasyon sadece kullanici adinin gosterilmesini istiyor; sifre
    hicbir yere yazilmiyor.
    1 = ad soyad cikarildi, 0 = mesaj beklenen bicimde degil. */
-static int extract_user_name(const char *message, char *nameOut, size_t outSize)
+static int extractUserName(const char *message, char *nameOut, size_t outSize)
 {
     const char *contentStart;
     const char *contentEnd;
@@ -122,7 +122,7 @@ static int extract_user_name(const char *message, char *nameOut, size_t outSize)
    Dosya adini nameOut'a yazar; icerigin baslangic adresini ve uzunlugunu
    dondurur (icerik kopyalanmiyor, mesaj tamponunun icini gosteriyor).
    1 = ayristirildi, 0 = mesaj beklenen bicimde degil. */
-static int split_invoice_message(char *message, size_t messageLength,
+static int splitInvoiceMessage(char *message, size_t messageLength,
                                  char *nameOut, size_t nameOutSize,
                                  const char **contentOut, size_t *contentLengthOut)
 {
@@ -179,7 +179,7 @@ static int split_invoice_message(char *message, size_t messageLength,
 
 /* Su anki tarih/saati spesifikasyonun istedigi "YYYY-MM-DD hh:mm:ss"
    bicimine cevirir. */
-static void format_now(char *out, size_t outSize)
+static void formatNow(char *out, size_t outSize)
 {
     time_t now = time(NULL);
     struct tm *parts = localtime(&now);
@@ -188,7 +188,7 @@ static void format_now(char *out, size_t outSize)
 }
 
 /* Invoice mesajini isler ve imzali XML'i client'a gonderir. */
-static void handle_invoice(SOCKET clientSocket, char *message, size_t messageLength)
+static void handleInvoice(SOCKET clientSocket, char *message, size_t messageLength)
 {
     char fileName[256];
     char fileNameUtf8[512]; /* ekrana yazarken kullanilan UTF-8 hali */
@@ -200,12 +200,12 @@ static void handle_invoice(SOCKET clientSocket, char *message, size_t messageLen
     char *signedXml = NULL;
     size_t signedLength = 0;
 
-    if (0 == split_invoice_message(message, messageLength,
+    if (0 == splitInvoiceMessage(message, messageLength,
                                    fileName, sizeof(fileName),
                                    &content, &contentLength)) {
         const char *error = "<Response>Invoice mesaji cozumlenemedi</Response>";
         printf("Invoice mesaji beklenen bicimde degil, islenmedi\n\n");
-        proto_send(clientSocket, error, strlen(error));
+        protoSend(clientSocket, error, strlen(error));
         return;
     }
 
@@ -213,34 +213,34 @@ static void handle_invoice(SOCKET clientSocket, char *message, size_t messageLen
        Dosya adi client'tan ANSI kod sayfasinda geliyor, konsolumuz UTF-8;
        yazmadan once ceviriyoruz (bkz. common/appConsole.c). */
     printf("%s file has been sent, waiting for registration\n",
-           console_to_utf8(fileName, fileNameUtf8, sizeof(fileNameUtf8)));
+           consoleToUtf8(fileName, fileNameUtf8, sizeof(fileNameUtf8)));
 
     /* Step 3.2: icerigin hash'i */
-    if (0 != sign_calculate_hash(content, contentLength, hashHex, sizeof(hashHex))) {
+    if (0 != signCalculateHash(content, contentLength, hashHex, sizeof(hashHex))) {
         const char *error = "<Response>Hash hesaplanamadi</Response>";
         printf("  HATA : HASH hesaplanamadi\n\n");
-        proto_send(clientSocket, error, strlen(error));
+        protoSend(clientSocket, error, strlen(error));
         return;
     }
 
     /* Step 3.3: hash'in AES ile sifrelenmesi */
-    if (0 != sign_encrypt_hash(hashHex, signatureHex, sizeof(signatureHex))) {
+    if (0 != signEncryptHash(hashHex, signatureHex, sizeof(signatureHex))) {
         const char *error = "<Response>Imza uretilemedi</Response>";
         printf("  HATA : IMZA uretilemedi\n\n");
-        proto_send(clientSocket, error, strlen(error));
+        protoSend(clientSocket, error, strlen(error));
         return;
     }
 
     printf("  HASH : %s\n", hashHex);
     printf("  IMZA : %s\n", signatureHex);
 
-    format_now(timestamp, sizeof(timestamp));
+    formatNow(timestamp, sizeof(timestamp));
 
-    if (0 != xml_sign_invoice(content, contentLength, timestamp, signatureHex,
+    if (0 != xmlSignInvoice(content, contentLength, timestamp, signatureHex,
                               &signedXml, &signedLength)) {
         const char *error = "<Response>Gelen fatura gecerli XML degil</Response>";
         printf("  HATA : gelen icerik gecerli bir XML belgesi degil\n\n");
-        proto_send(clientSocket, error, strlen(error));
+        protoSend(clientSocket, error, strlen(error));
         return;
     }
 
@@ -250,23 +250,23 @@ static void handle_invoice(SOCKET clientSocket, char *message, size_t messageLen
         Sleep((DWORD)g_responseDelaySeconds * 1000);
     }
 
-    if (0 == proto_send(clientSocket, signedXml, signedLength)) {
+    if (0 == protoSend(clientSocket, signedXml, signedLength)) {
         printf("  Imzali XML gonderildi (%u bayt)\n\n", (unsigned)signedLength);
     } else {
         printf("  Imzali XML gonderilemedi\n\n");
     }
 
-    xml_free_buffer(signedXml);
+    xmlFreeBuffer(signedXml);
 }
 
 /* Tek bir client baglantisini, kapanana kadar mesaj mesaj isler. */
-static void serve_client(SOCKET clientSocket)
+static void serveClient(SOCKET clientSocket)
 {
     for (;;) {
         char *message = NULL;
         size_t messageLength = 0;
 
-        if (0 != proto_recv(clientSocket, &message, &messageLength)) {
+        if (0 != protoRecv(clientSocket, &message, &messageLength)) {
             break; /* client kapatti ya da hata olustu */
         }
 
@@ -274,27 +274,27 @@ static void serve_client(SOCKET clientSocket)
         if (0 == strncmp(message, TAG_HELLO_OPEN, strlen(TAG_HELLO_OPEN))) {
             char nameSurname[128];
 
-            if (0 != extract_user_name(message, nameSurname, sizeof(nameSurname))) {
+            if (0 != extractUserName(message, nameSurname, sizeof(nameSurname))) {
                 printf("Kullanici: %s\n\n", nameSurname);
             } else {
                 printf("Hello mesaji beklenen bicimde degil\n\n");
             }
 
-            proto_send(clientSocket, MSG_READY, strlen(MSG_READY));
+            protoSend(clientSocket, MSG_READY, strlen(MSG_READY));
         }
         else if (0 == strncmp(message, TAG_INVOICE_OPEN, strlen(TAG_INVOICE_OPEN))) {
-            handle_invoice(clientSocket, message, messageLength);
+            handleInvoice(clientSocket, message, messageLength);
         }
         else {
             printf("Bilinmeyen mesaj (%u bayt)\n\n", (unsigned)messageLength);
         }
 
-        proto_free(message);
+        protoFree(message);
     }
 }
 
 /* --port ve --delay seceneklerini okur. Taninmayan secenekte 0 doner. */
-static int parse_arguments(int argc, char **argv, int *portOut)
+static int parseArguments(int argc, char **argv, int *portOut)
 {
     int i;
 
@@ -325,9 +325,9 @@ int main(int argc, char **argv)
     int port;
 
     /* Tamponsuz cikti + UTF-8 konsol (bkz. common/appConsole.c) */
-    console_setup();
+    consoleSetup();
 
-    if (0 == parse_arguments(argc, argv, &port)) {
+    if (0 == parseArguments(argc, argv, &port)) {
         return 1;
     }
 
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    print_listen_address(port);
+    printListenAddress(port);
 
     for (;;) {
         struct sockaddr_in clientAddr;
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
 
         /* Client ayni baglantiyi hem Hello hem Invoice icin kullaniyor,
            o yuzden baglanti kapanana kadar mesaj almaya devam ediyoruz. */
-        serve_client(clientSocket);
+        serveClient(clientSocket);
 
         printf("Baglanti kapandi\n\n");
         closesocket(clientSocket);
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
     /* Buraya normal akista ulasilmiyor (sonsuz accept dongusu); temizlik
        kodu yine de dogru olsun diye duruyor. */
     closesocket(listenSocket);
-    xml_shutdown();
+    xmlShutdown();
     WSACleanup();
     return 0;
 }

@@ -41,15 +41,15 @@
 
 /* Mesaji uzunluk onekiyle birlikte gonderir.
    PROTO_OK / PROTO_CLOSED / PROTO_ERROR doner. */
-int proto_send(SOCKET sock, const char *message, size_t length);
+int protoSend(SOCKET sock, const char *message, size_t length);
 
 /* Tam bir mesaj okur. PROTO_OK dondugunde *outMessage'a malloc'lanmis, sonu
    '\0' ile kapatilmis tampon yazar (*outLength = icerik uzunlugu).
-   Cagiran taraf tamponu proto_free() ile birakmali.
+   Cagiran taraf tamponu protoFree() ile birakmali.
    Basarisizlikta PROTO_TIMEOUT / PROTO_CLOSED / PROTO_ERROR doner. */
-int proto_recv(SOCKET sock, char **outMessage, size_t *outLength);
+int protoRecv(SOCKET sock, char **outMessage, size_t *outLength);
 
-/* proto_recv'in ayirdigi tamponu birakir. NULL vermek guvenli. */
-void proto_free(char *message);
+/* protoRecv'in ayirdigi tamponu birakir. NULL vermek guvenli. */
+void protoFree(char *message);
 
 #endif /* APP_PROTO_H */

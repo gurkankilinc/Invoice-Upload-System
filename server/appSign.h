@@ -16,13 +16,13 @@
 /* Step 3.2: verinin SHA-256 hash'ini hesaplayip 64 karakterlik kucuk harfli
    hex metin olarak hashHexOut'a yazar.
    0 = basarili, -1 = hata (tampon kucuk ya da hash hesaplanamadi). */
-int sign_calculate_hash(const char *data, size_t dataLength,
+int signCalculateHash(const char *data, size_t dataLength,
                         char *hashHexOut, size_t outSize);
 
-/* Step 3.3: sign_calculate_hash'in urettigi 64 karakterlik hex hash'i
+/* Step 3.3: signCalculateHash'in urettigi 64 karakterlik hex hash'i
    spesifikasyondaki AES anahtariyla sifreler, sonucu hex metin olarak yazar.
    0 = basarili, -1 = hata. */
-int sign_encrypt_hash(const char *hashHex,
+int signEncryptHash(const char *hashHex,
                       char *signatureHexOut, size_t outSize);
 
 #endif /* APP_SIGN_H */

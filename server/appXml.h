@@ -25,20 +25,20 @@
    tekrar gonderilmisse) eskisi silinip yenisi yazilir.
 
    Basarili olursa 0 doner, *outXml'e '\0' ile kapatilmis tampon yazar;
-   cagiran taraf bunu xml_free_buffer() ile birakmali.
+   cagiran taraf bunu xmlFreeBuffer() ile birakmali.
    Gelen veri gecerli XML degilse -1 doner. */
-int xml_sign_invoice(const char *invoiceXml, size_t invoiceLength,
+int xmlSignInvoice(const char *invoiceXml, size_t invoiceLength,
                      const char *timestamp, const char *signatureHex,
                      char **outXml, size_t *outLength);
 
-/* xml_sign_invoice'in ayirdigi tamponu birakir. NULL vermek guvenli. */
-void xml_free_buffer(char *buffer);
+/* xmlSignInvoice'in ayirdigi tamponu birakir. NULL vermek guvenli. */
+void xmlFreeBuffer(char *buffer);
 
 /* Verilen metin ayristirilabilir (well-formed) bir XML belgesi mi?
    1 = evet, 0 = hayir. */
-int xml_is_well_formed(const char *xml, size_t length);
+int xmlIsWellFormed(const char *xml, size_t length);
 
 /* libxml2'nin ic tablolarini birakir. Program kapanirken bir kez cagrilir. */
-void xml_shutdown(void);
+void xmlShutdown(void);
 
 #endif /* APP_XML_H */

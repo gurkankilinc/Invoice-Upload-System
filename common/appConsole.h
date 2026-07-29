@@ -22,17 +22,17 @@
 /* Konsolu UTF-8'e alir ve stdout tamponlamasini kapatir.
    Program basinda bir kez cagrilir. Kod sayfasi konsol penceresinin
    ozelligi oldugu icin (surecin degil) cikista eski deger geri yukleniyor. */
-void console_setup(void);
+void consoleSetup(void);
 
 /* Sistemin ANSI kod sayfasindaki bir metni UTF-8'e cevirir.
    Donen deger out tamponudur; cevirme basarisiz olursa metin oldugu gibi
    kopyalanir, yani cagiran taraf her zaman yazdirilabilir bir sonuc alir. */
-const char *console_to_utf8(const char *ansiText, char *out, size_t outSize);
+const char *consoleToUtf8(const char *ansiText, char *out, size_t outSize);
 
 /* Girdi gercek bir klavyeden mi geliyor?
    1 = evet (normal kullanim), 0 = stdin bir boruya/dosyaya yonlendirilmis
    (otomatik test). Menuler ve sifre okuma bu bilgiye gore davraniyor. */
-int console_is_interactive(void);
+int consoleIsInteractive(void);
 
 /* Menuler icin tek tus okur.
    Klavyeden calisirken _getch() kullanir: Enter'a basmaya gerek kalmaz,
@@ -42,10 +42,10 @@ int console_is_interactive(void);
    Girdi bittiginde CONSOLE_KEY_EOF doner; cagiran taraf bunu duzgun
    kapanmak icin kullanir, yoksa test sonsuz donguye girerdi. */
 #define CONSOLE_KEY_EOF (-1)
-int console_read_key(void);
+int consoleReadKey(void);
 
 /* Sifreyi okur. Klavyeden calisirken karakterleri '*' olarak gosterir;
    stdin yonlendirilmisse duz satir olarak okur. */
-void console_read_password(char *buffer, size_t size);
+void consoleReadPassword(char *buffer, size_t size);
 
 #endif /* APP_CONSOLE_H */

@@ -171,7 +171,7 @@ Mentör geri bildirimi doğrultusunda tüm kod gözden geçirildi:
 - **`strncpy`:** `strcpy`'nin sınır kontrolü yok; `strncpy` en fazla n karakter
   kopyalar ama kaynak uzunsa sonuna `'\0'` **koymaz**. Bu gerçek bir hataya yol
   açmıştı — `appUser.c` içinde `nameSurname` kopyalanırken sonlandırma
-  unutulmuştu. `copy_text()` ile tek yerde çözüldü.
+  unutulmuştu. `copyText()` ile tek yerde çözüldü.
 - **`snprintf`:** `sprintf` yerine her yerde. Kendi kodumuzda `sprintf`,
   `strcpy`, `strcat`, `gets` **sıfır**.
 

@@ -9,21 +9,21 @@
 /* Kullaniciya IP ve port sorar, sunucuya baglanir ve alma islemleri icin
    30 saniyelik zaman asimi ayarlar.
    1 = baglanti kuruldu, 0 = kurulamadi (cagiran taraf tekrar deneyebilir). */
-int network_connect(void);
+int networkConnect(void);
 
 /* <Hello>ad soyad sifre</Hello> mesajini gonderir ve sunucunun yanitini
    ekrana basar. 1 = yanit alindi, 0 = alinamadi. */
-int network_send_hello(const char *nameSurname, const char *password);
+int networkSendHello(const char *nameSurname, const char *password);
 
 /* Fatura icerigini <Invoice name="...">...</Invoice> mesajiyla gonderir.
    Gelen yaniti ekrana basar; yanit gecerli bir XML belgesiyse imzali dosya
    olarak signed/ klasorune kaydeder.
    30 saniye icinde yanit gelmezse "Upload operation failed" yazar.
    1 = yanit alindi, 0 = alinamadi. */
-int network_send_invoice(const char *fileName,
+int networkSendInvoice(const char *fileName,
                          const char *fileContent, size_t contentLength);
 
 /* Acik baglantiyi kapatir. Logout sirasinda cagriliyor. */
-void network_disconnect(void);
+void networkDisconnect(void);
 
 #endif /* APP_NETWORK_H */

@@ -7,7 +7,7 @@
    TCP tek recv()'de istenenden az bayt verebilir; "kismi okuma" denen bu durum
    hata degil, normal davranistir.
    PROTO_OK / PROTO_TIMEOUT / PROTO_CLOSED / PROTO_ERROR doner. */
-static int recv_exactly(SOCKET sock, char *buffer, size_t length)
+static int recvExactly(SOCKET sock, char *buffer, size_t length)
 {
     size_t received = 0;
 
@@ -38,7 +38,7 @@ static int recv_exactly(SOCKET sock, char *buffer, size_t length)
 
 /* send() de kismi yazabilir: 900 bayt istedik, 500'unu yazdi diyebilir.
    Kalani gonderene kadar tekrarliyoruz. */
-static int send_exactly(SOCKET sock, const char *buffer, size_t length)
+static int sendExactly(SOCKET sock, const char *buffer, size_t length)
 {
     size_t sent = 0;
 
@@ -59,7 +59,7 @@ static int send_exactly(SOCKET sock, const char *buffer, size_t length)
     return PROTO_OK;
 }
 
-int proto_send(SOCKET sock, const char *message, size_t length)
+int protoSend(SOCKET sock, const char *message, size_t length)
 {
     unsigned char header[4];
 
@@ -75,16 +75,16 @@ int proto_send(SOCKET sock, const char *message, size_t length)
     header[3] = (unsigned char)(length & 0xFF);
 
     {
-        int result = send_exactly(sock, (const char *)header, sizeof(header));
+        int result = sendExactly(sock, (const char *)header, sizeof(header));
         if (PROTO_OK != result) {
             return result;
         }
     }
 
-    return send_exactly(sock, message, length);
+    return sendExactly(sock, message, length);
 }
 
-int proto_recv(SOCKET sock, char **outMessage, size_t *outLength)
+int protoRecv(SOCKET sock, char **outMessage, size_t *outLength)
 {
     unsigned char header[4];
     size_t length;
@@ -99,7 +99,7 @@ int proto_recv(SOCKET sock, char **outMessage, size_t *outLength)
     *outMessage = NULL;
     *outLength = 0;
 
-    result = recv_exactly(sock, (char *)header, sizeof(header));
+    result = recvExactly(sock, (char *)header, sizeof(header));
     if (PROTO_OK != result) {
         return result;
     }
@@ -121,7 +121,7 @@ int proto_recv(SOCKET sock, char **outMessage, size_t *outLength)
     }
 
     if (0 < length) {
-        result = recv_exactly(sock, buffer, length);
+        result = recvExactly(sock, buffer, length);
         if (PROTO_OK != result) {
             free(buffer);
             return result;
@@ -135,7 +135,7 @@ int proto_recv(SOCKET sock, char **outMessage, size_t *outLength)
     return PROTO_OK;
 }
 
-void proto_free(char *message)
+void protoFree(char *message)
 {
     free(message); /* free(NULL) zaten guvenli, ayrica kontrol gerekmiyor */
 }

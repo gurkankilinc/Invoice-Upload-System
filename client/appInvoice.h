@@ -5,7 +5,7 @@
    listeler, kullanici bir rakama basinca o dosyayi sunucuya gonderir
    (Phase 2: artik ekrana basilmiyor), ESC'ye basinca cagiran yere
    (appMain.c) geri doner. */
-void invoice_list_menu(void);
+void invoiceListMenu(void);
 
 /* Faz 1 modunu acar/kapatir.
    0 (varsayilan) = Faz 2 davranisi: secilen fatura sunucuya gonderilir.
@@ -14,6 +14,6 @@ void invoice_list_menu(void);
    Isterler listesi iki davranisi da ayri kalemler olarak sayiyor; tek
    surumden ikisini de gosterebilmek icin secenek haline getirildi
    (istemci --phase1 parametresiyle calistirilir). */
-void invoice_set_phase1_mode(int enabled);
+void invoiceSetPhase1Mode(int enabled);
 
 #endif /* APP_INVOICE_H */

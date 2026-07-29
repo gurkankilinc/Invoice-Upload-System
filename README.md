@@ -109,7 +109,7 @@ Bunlar kökteki `InvoiceServer.bat` / `InvoiceClient.bat` başlatıcılarıdır;
 `.\InvoiceServer --delay 35`
 
 Hangi klasörden çalıştırıldıkları önemli değil: client açılışta çalışma dizinini
-kendi `.exe` konumuna sabitliyor (`set_working_directory_to_exe()`), böylece
+kendi `.exe` konumuna sabitliyor (`setWorkingDirectoryToExe()`), böylece
 `.inv` dosyalarını ve `upload_system.db`'yi her zaman buluyor. Çift tıklayarak
 da çalıştırılabilirler.
 
@@ -241,7 +241,7 @@ Yeniden bağlandıktan sonra `Hello` mesajı otomatik olarak tekrar gönderilir
   C'de dosya düzeyindeki isimler varsayılan olarak tüm projeye açıktır.
 - **`strncpy` / `copy_text`**: `strcpy`'nin sınır kontrolü yok. `strncpy` en
   fazla n karakter kopyalar ama kaynak uzunsa sonuna `'\0'` **koymaz**;
-  `client/appUser.c` içindeki `copy_text()` ikisini de halleder.
+  `client/appUser.c` içindeki `copyText()` ikisini de halleder.
 - **`snprintf`**: `sprintf` yerine her yerde `snprintf` — hedef tamponun
   boyutunu bildiği için taşma olacaksa yazmayı keser.
 

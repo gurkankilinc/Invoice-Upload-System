@@ -18,7 +18,7 @@ static const char AES_KEY[] = "12345678901234567890123456789012";
    dosyasindan cagrilamaz ve ismi projenin geri kalaniyla catismaz.
    Yazarken snprintf kullaniyoruz: sprintf'ten farki, tamponun sonunu asmak
    uzereyken yazmayi kesmesi. */
-static int bytes_to_hex(const unsigned char *bytes, size_t byteCount,
+static int bytesToHex(const unsigned char *bytes, size_t byteCount,
                         char *out, size_t outSize)
 {
     size_t i;
@@ -36,7 +36,7 @@ static int bytes_to_hex(const unsigned char *bytes, size_t byteCount,
     return 0;
 }
 
-int sign_calculate_hash(const char *data, size_t dataLength,
+int signCalculateHash(const char *data, size_t dataLength,
                         char *hashHexOut, size_t outSize)
 {
     unsigned char hash[32]; /* SHA-256 her zaman 32 bayt uretir */
@@ -50,10 +50,10 @@ int sign_calculate_hash(const char *data, size_t dataLength,
         return -1;
     }
 
-    return bytes_to_hex(hash, sizeof(hash), hashHexOut, outSize);
+    return bytesToHex(hash, sizeof(hash), hashHexOut, outSize);
 }
 
-int sign_encrypt_hash(const char *hashHex, char *signatureHexOut, size_t outSize)
+int signEncryptHash(const char *hashHex, char *signatureHexOut, size_t outSize)
 {
     mbedtls_aes_context aes;
     unsigned char encrypted[64]; /* 64 karakterlik hex hash = 64 bayt girdi */
@@ -99,5 +99,5 @@ int sign_encrypt_hash(const char *hashHex, char *signatureHexOut, size_t outSize
         return -1;
     }
 
-    return bytes_to_hex(encrypted, sizeof(encrypted), signatureHexOut, outSize);
+    return bytesToHex(encrypted, sizeof(encrypted), signatureHexOut, outSize);
 }
